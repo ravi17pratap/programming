@@ -1,0 +1,140 @@
+import java.util.HashMap;
+import java.util.Map;
+
+public class LRUCache {
+
+	int capacity; // represents maxSize of cache
+	int currentSize; // how many item cache currently holds
+	Map<Integer, DoublyLinkedListNode> nodeMap;
+
+	DoublyLinkedListNode start;
+	DoublyLinkedListNode end;
+
+	public LRUCache(int capacity) {
+		this.capacity = capacity;
+		this.currentSize = 0;
+		this.nodeMap = new HashMap<>();
+
+	}
+
+	public void printCache() {
+		DoublyLinkedListNode traverseNode = start;
+
+		while (traverseNode != null) {
+			System.out.print(traverseNode);
+			traverseNode = traverseNode.next;
+		}
+		System.out.println();
+
+	}
+
+	public int get(int key) {
+
+		if (nodeMap.containsKey(key)) {
+			DoublyLinkedListNode node = nodeMap.get(key);
+			bringToFront(node);
+			return node.value;
+		}
+
+		return -1;
+	}
+
+	public void put(int key, int value) {
+
+		// if node is found in Map then move it to front
+		if (nodeMap.containsKey(key)) {
+			DoublyLinkedListNode node = nodeMap.get(key); // get the node
+			node.value = value; // value may change, as you might be inserting
+			bringToFront(node);
+		} else {
+			DoublyLinkedListNode node = new DoublyLinkedListNode(key, value);
+			if (currentSize < capacity) {
+				addToFront(node);
+				currentSize++;
+			} else {
+				removeLastNode();
+				addToFront(node);
+			}
+
+		}
+
+	}
+
+	private void removeLastNode() {
+
+		System.out.println("Removing LRU node:" + end.key);
+		nodeMap.remove(end.key);
+		end = end.prev; // get back
+
+		if (end != null) {
+			end.next = null;
+		}
+	}
+
+	/**
+	 * to add node at the front
+	 */
+	private void addToFront(DoublyLinkedListNode insertNode) {
+
+		if (start == null) {
+			start = insertNode;
+		} else {
+			DoublyLinkedListNode next = start;
+			insertNode.next = next;
+			next.prev = insertNode;
+			start = insertNode;
+		}
+
+		if (end == null) {
+			end = insertNode;
+		}
+		nodeMap.put(insertNode.key, insertNode);
+
+	}
+
+	private void bringToFront(DoublyLinkedListNode node) {
+		remove(node);
+		addToFront(node);
+
+	}
+
+	private void remove(DoublyLinkedListNode node) {
+		// detach node from list
+		DoublyLinkedListNode prevNode = node.prev;
+		DoublyLinkedListNode nextNode = node.next;
+		// handle next node
+		if (prevNode != null)
+			prevNode.next = nextNode;
+		else
+			start = nextNode;
+		// hanlde prev node
+		if (nextNode != null)
+			nextNode.prev = prevNode;
+		else
+			end = prevNode;
+		// add to front of ist
+
+	}
+
+}
+
+class DoublyLinkedListNode {
+
+	DoublyLinkedListNode prev;
+	DoublyLinkedListNode next;
+	int key;
+	int value;
+
+	public DoublyLinkedListNode(int key, int value) {
+		this.key = key;
+		this.value = value;
+		this.prev = null;
+		this.next = null;
+	}
+
+	@Override
+	public String toString() {
+		return " [key=" + key + ", value=" + value + "]";
+	}
+
+}
